@@ -9,5 +9,23 @@
 
 ## 工具  
 [Git Website](https://git-scm.com/download)  
-[VP](https://www.visual-paradigm.com)
+[VP](https://www.visual-paradigm.com)  
+[Flyway](https://flywaydb.org/getstarted/firststeps/maven)
 
+## 脚本  
+```sql
+create table USER
+(
+    ID           INTEGER auto_increment,
+    ACCOUNT_ID   VARCHAR(100),
+    NAME         VARCHAR(50),
+    TOKEN        CHAR(36),
+    GMT_CREATE   BIGINT,
+    GMT_MODIFIED BIGINT,
+    constraint USER_PK
+        primary key (ID)
+);
+```  
+```bash
+mvn flyway:migrate
+```
