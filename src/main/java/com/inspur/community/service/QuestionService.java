@@ -2,6 +2,8 @@ package com.inspur.community.service;
 
 import com.inspur.community.dto.PaginationDTO;
 import com.inspur.community.dto.QuestionDTO;
+import com.inspur.community.exception.CustomizeErrorCode;
+import com.inspur.community.exception.CustomizeException;
 import com.inspur.community.mapper.QuestionMapper;
 import com.inspur.community.mapper.UserMapper;
 import com.inspur.community.model.Question;
@@ -91,6 +93,9 @@ public class QuestionService {
 
     public QuestionDTO getById(Integer id) {
         Question question = qm.selectByPrimaryKey(id);
+        if (question == null) {
+            throw new CustomizeException(CustomizeErrorCode.QUESTION_NOT_FOUND);
+        }
         QuestionDTO questionDTO = new QuestionDTO();
         BeanUtils.copyProperties(question, questionDTO);
         User user = um.selectByPrimaryKey(question.getCreator());
@@ -113,7 +118,19 @@ public class QuestionService {
             updateQuestion.setTag(question.getTag());
             QuestionExample example = new QuestionExample();
             example.createCriteria().andIdEqualTo(question.getId());
-            qm.updateByExampleSelective(updateQuestion, example);
+            int updated = qm.updateByExampleSelective(updateQuestion, example);
+            if (updated != 1) {
+                throw new CustomizeException(CustomizeErrorCode.QUESTION_NOT_FOUND);
+            }
         }
+    }
+
+    public void incView(Integer id) {
+        Question question = qm.selectByPrimaryKey(id);
+        Question updateQuestion = new Question();
+        updateQuestion.setViewCount(question.getViewCount() + 1);
+        QuestionExample example = new QuestionExample();
+        example.createCriteria().andIdEqualTo(id);
+        qm.updateByExampleSelective(updateQuestion, example);
     }
 }
