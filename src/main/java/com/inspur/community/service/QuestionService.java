@@ -4,6 +4,7 @@ import com.inspur.community.dto.PaginationDTO;
 import com.inspur.community.dto.QuestionDTO;
 import com.inspur.community.exception.CustomizeErrorCode;
 import com.inspur.community.exception.CustomizeException;
+import com.inspur.community.mapper.QuestionExtMapper;
 import com.inspur.community.mapper.QuestionMapper;
 import com.inspur.community.mapper.UserMapper;
 import com.inspur.community.model.Question;
@@ -22,6 +23,9 @@ public class QuestionService {
 
     @Autowired
     private QuestionMapper qm;
+
+    @Autowired
+    private QuestionExtMapper qem;
 
     @Autowired
     private UserMapper um;
@@ -57,7 +61,7 @@ public class QuestionService {
         return paginationDTO;
     }
 
-    public PaginationDTO list(Integer userId, Integer page, Integer size) {
+    public PaginationDTO list(Long userId, Integer page, Integer size) {
         PaginationDTO paginationDTO = new PaginationDTO();
         Integer totalPage;
         QuestionExample questionExample = new QuestionExample();
@@ -91,7 +95,7 @@ public class QuestionService {
         return paginationDTO;
     }
 
-    public QuestionDTO getById(Integer id) {
+    public QuestionDTO getById(Long id) {
         Question question = qm.selectByPrimaryKey(id);
         if (question == null) {
             throw new CustomizeException(CustomizeErrorCode.QUESTION_NOT_FOUND);
@@ -108,6 +112,9 @@ public class QuestionService {
             //创建
             question.setGmtCreate(System.currentTimeMillis());
             question.setGmtModified(question.getGmtCreate());
+            question.setViewCount(0);
+            question.setLikeCount(0);
+            question.setCommentCount(0);
             qm.insert(question);
         } else {
             //更新
@@ -125,12 +132,10 @@ public class QuestionService {
         }
     }
 
-    public void incView(Integer id) {
-        Question question = qm.selectByPrimaryKey(id);
-        Question updateQuestion = new Question();
-        updateQuestion.setViewCount(question.getViewCount() + 1);
-        QuestionExample example = new QuestionExample();
-        example.createCriteria().andIdEqualTo(id);
-        qm.updateByExampleSelective(updateQuestion, example);
+    public void incView(Long id) {
+        Question question = new Question();
+        question.setId(id);
+        question.setViewCount(1);
+        qem.incView(question);
     }
 }
