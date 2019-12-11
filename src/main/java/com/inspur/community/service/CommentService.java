@@ -4,10 +4,7 @@ import com.inspur.community.dto.CommentDTO;
 import com.inspur.community.enums.CommentTypeEnum;
 import com.inspur.community.exception.CustomizeErrorCode;
 import com.inspur.community.exception.CustomizeException;
-import com.inspur.community.mapper.CommentMapper;
-import com.inspur.community.mapper.QuestionExtMapper;
-import com.inspur.community.mapper.QuestionMapper;
-import com.inspur.community.mapper.UserMapper;
+import com.inspur.community.mapper.*;
 import com.inspur.community.model.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +32,9 @@ public class CommentService {
     @Autowired
     private UserMapper um;
 
+    @Autowired
+    private CommentExtMapper cem;
+
     @Transactional
     public void insert(Comment comment) {
         if (comment.getParentId() == null || comment.getParentId() == 0) {
@@ -50,6 +50,11 @@ public class CommentService {
                 throw new CustomizeException(CustomizeErrorCode.COMMENT_NOT_FOUND);
             }
             cm.insert(comment);
+            // 增加评论数
+            Comment parentComment = new Comment();
+            parentComment.setId(comment.getParentId());
+            parentComment.setCommentCount(1);
+            cem.incCommentCount(parentComment);
         } else {
             // 回复问题
             Question question = qm.selectByPrimaryKey(comment.getParentId());
@@ -62,9 +67,9 @@ public class CommentService {
         }
     }
 
-    public List<CommentDTO> listByQuestionId(Long id) {
+    public List<CommentDTO> listByTargetId(Long id, CommentTypeEnum type) {
         CommentExample commentExample = new CommentExample();
-        commentExample.createCriteria().andParentIdEqualTo(id).andTypeEqualTo(CommentTypeEnum.QUESTION.getType());
+        commentExample.createCriteria().andParentIdEqualTo(id).andTypeEqualTo(type.getType());
         commentExample.setOrderByClause("gmt_create desc");
         List<Comment> comments = cm.selectByExample(commentExample);
         if (comments.size() == 0) {
