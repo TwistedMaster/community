@@ -2,6 +2,7 @@ package com.inspur.community.controller;
 
 import com.inspur.community.dto.PaginationDTO;
 import com.inspur.community.model.User;
+import com.inspur.community.service.NotificationService;
 import com.inspur.community.service.QuestionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -18,6 +19,9 @@ public class ProfileController {
     @Autowired
     private QuestionService qs;
 
+    @Autowired
+    private NotificationService ns;
+
     @GetMapping("/profile/{action}")
     public String profile(HttpServletRequest request, @PathVariable(name = "action") String action, Model model, @RequestParam(name = "page", defaultValue = "1") Integer page,
                           @RequestParam(name = "size", defaultValue = "5") Integer size) {
@@ -28,12 +32,16 @@ public class ProfileController {
         if ("questions".equals(action)) {
             model.addAttribute("section", "questions");
             model.addAttribute("sectionName", "我的提问");
+            PaginationDTO paginationDTO = qs.list(user.getId(), page, size);
+            model.addAttribute("pagination", paginationDTO);
         } else if ("replies".equals(action)) {
+            PaginationDTO paginationDTO = ns.list(user.getId(), page, size);
+            Long unreadCount = ns.unreadCount(user.getId());
             model.addAttribute("section", "replies");
+            model.addAttribute("pagination", paginationDTO);
+            model.addAttribute("unreadCount", unreadCount);
             model.addAttribute("sectionName", "最新回复");
         }
-        PaginationDTO paginationDTO = qs.list(user.getId(), page, size);
-        model.addAttribute("pagination", paginationDTO);
         return "profile";
     }
 }
