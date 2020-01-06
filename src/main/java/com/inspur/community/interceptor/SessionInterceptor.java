@@ -3,6 +3,7 @@ package com.inspur.community.interceptor;
 import com.inspur.community.mapper.UserMapper;
 import com.inspur.community.model.User;
 import com.inspur.community.model.UserExample;
+import com.inspur.community.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -19,6 +20,9 @@ public class SessionInterceptor implements HandlerInterceptor {
     @Autowired
     private UserMapper um;
 
+    @Autowired
+    private NotificationService ns;
+
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         Cookie[] cookies = request.getCookies();
@@ -31,6 +35,8 @@ public class SessionInterceptor implements HandlerInterceptor {
                     List<User> users = um.selectByExample(userExample);
                     if (users.size() != 0) {
                         request.getSession().setAttribute("user", users.get(0));
+                        Long unreadCount = ns.unreadCount(users.get(0).getId());
+                        request.getSession().setAttribute("unreadCount", unreadCount);
                     }
                     break;
                 }

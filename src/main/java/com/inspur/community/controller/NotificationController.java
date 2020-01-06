@@ -2,7 +2,6 @@ package com.inspur.community.controller;
 
 import com.inspur.community.dto.NotificationDTO;
 import com.inspur.community.enums.NotificationTypeEnum;
-import com.inspur.community.model.Notification;
 import com.inspur.community.model.User;
 import com.inspur.community.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
